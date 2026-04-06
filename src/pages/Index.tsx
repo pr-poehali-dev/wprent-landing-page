@@ -142,7 +142,7 @@ export default function Index() {
   const filtered = activeFilter === "all" ? GALLERY_ITEMS : GALLERY_ITEMS.filter(g => g.industry === activeFilter);
 
   return (
-    <div className="min-h-screen mesh-bg font-golos noise-overlay">
+    <div className="min-h-screen font-golos noise-overlay" style={{ background: 'hsl(220 22% 6%)' }}>
 
       {/* HEADER */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navScrolled ? "glass py-3" : "py-6"}`}>
@@ -174,10 +174,14 @@ export default function Index() {
       </header>
 
       {/* HERO */}
-      <section className="relative min-h-screen flex items-center justify-center pt-24 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-neon/5 blur-3xl animate-float" />
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full bg-blue-500/5 blur-3xl animate-float" style={{ animationDelay: "1.5s" }} />
+      <section className="hero-bg relative min-h-screen flex items-center justify-center pt-24 overflow-hidden">
+        {/* Decorative blobs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-[32rem] h-[32rem] rounded-full bg-neon/8 blur-[120px] animate-float" />
+          <div className="absolute bottom-1/3 right-1/5 w-72 h-72 rounded-full bg-sky-400/6 blur-[80px] animate-float" style={{ animationDelay: "1.8s" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-cyan-500/4 blur-[100px]" />
+          {/* Thin horizontal glow line */}
+          <div className="absolute top-[45%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-neon/20 to-transparent" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
