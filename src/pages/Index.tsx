@@ -1,7 +1,99 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 
 type IconName = React.ComponentProps<typeof Icon>["name"];
+
+function ParticlesCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const init = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    const CYAN = { r: 34, g: 197, b: 220 };
+    const GREEN = { r: 52, g: 211, b: 130 };
+
+    const particles = Array.from({ length: 55 }, () => {
+      const isCyan = Math.random() > 0.45;
+      const c = isCyan ? CYAN : GREEN;
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.6 + 0.4,
+        alpha: Math.random() * 0.45 + 0.1,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        color: c,
+      };
+    });
+
+    let raf: number;
+
+    function draw() {
+      if (!ctx || !canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color.r},${p.color.g},${p.color.b},${p.alpha})`;
+        ctx.fill();
+
+        // draw faint lines to close neighbours
+        for (let j = i + 1; j < particles.length; j++) {
+          const q = particles[j];
+          const dx = p.x - q.x;
+          const dy = p.y - q.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 110) {
+            const lineAlpha = (1 - dist / 110) * 0.12;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.strokeStyle = `rgba(${p.color.r},${p.color.g},${p.color.b},${lineAlpha})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      raf = requestAnimationFrame(draw);
+    }
+
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  useEffect(() => {
+    const cleanup = init();
+    const onResize = () => init();
+    window.addEventListener("resize", onResize);
+    return () => {
+      cleanup?.();
+      window.removeEventListener("resize", onResize);
+    };
+  }, [init]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ opacity: 0.75 }}
+    />
+  );
+}
 
 const GALLERY_ITEMS = [
   {
@@ -175,19 +267,21 @@ export default function Index() {
 
       {/* HERO */}
       <section className="hero-bg relative min-h-screen flex items-center justify-center pt-24 overflow-hidden">
-        {/* Decorative blobs */}
+        {/* Particles */}
+        <ParticlesCanvas />
+        {/* Soft glow blobs behind content */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-[32rem] h-[32rem] rounded-full bg-neon/8 blur-[120px] animate-float" />
-          <div className="absolute bottom-1/3 right-1/5 w-72 h-72 rounded-full bg-sky-400/6 blur-[80px] animate-float" style={{ animationDelay: "1.8s" }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-cyan-500/4 blur-[100px]" />
-          {/* Thin horizontal glow line */}
-          <div className="absolute top-[45%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-neon/20 to-transparent" />
+          <div className="absolute top-1/4 left-1/4 w-[36rem] h-[36rem] rounded-full blur-[140px] animate-float"
+            style={{ background: 'hsl(200 90% 55% / 0.07)' }} />
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full blur-[90px] animate-float"
+            style={{ background: 'hsl(145 80% 52% / 0.07)', animationDelay: "2s" }} />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neon/30 bg-neon/5 mb-8 animate-fade-in">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neon/25 bg-neon/5 mb-8 animate-fade-in">
             <span className="w-2 h-2 rounded-full bg-neon animate-pulse" />
             <span className="text-sm text-muted-foreground font-golos">Более 500 сайтов запущено в 2024</span>
+            <span className="w-2 h-2 rounded-full bg-neon2 animate-pulse" style={{ animationDelay: "0.5s" }} />
           </div>
 
           <h1 className="font-oswald font-bold leading-none mb-6">
@@ -229,9 +323,18 @@ export default function Index() {
           </div>
 
           <div className="mt-20 grid grid-cols-3 gap-8 max-w-lg mx-auto opacity-0 animate-fade-in" style={{ animationDelay: "1s" }}>
-            {[["500+", "сайтов"], ["24ч", "запуск"], ["99.9%", "аптайм"]].map(([val, label]) => (
+            {[
+              { val: "500+", label: "сайтов", accent: "neon" },
+              { val: "24ч", label: "запуск", accent: "neon2" },
+              { val: "99.9%", label: "аптайм", accent: "neon" },
+            ].map(({ val, label, accent }) => (
               <div key={label} className="text-center">
-                <div className="font-oswald text-3xl font-bold neon-text">{val}</div>
+                <div
+                  className="font-oswald text-3xl font-bold"
+                  style={{ color: accent === "neon2" ? "hsl(var(--neon2))" : "hsl(var(--neon))" }}
+                >
+                  {val}
+                </div>
                 <div className="text-xs text-muted-foreground mt-1">{label}</div>
               </div>
             ))}

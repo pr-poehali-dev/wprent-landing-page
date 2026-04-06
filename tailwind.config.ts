@@ -49,6 +49,7 @@ export default {
 					foreground: 'hsl(var(--accent-foreground))'
 				},
 				neon: 'hsl(var(--neon))',
+				neon2: 'hsl(var(--neon2))',
 				surface: 'hsl(var(--surface))',
 				surface2: 'hsl(var(--surface2))',
 			},
