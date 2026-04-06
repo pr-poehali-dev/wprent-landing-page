@@ -1,99 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 
 type IconName = React.ComponentProps<typeof Icon>["name"];
-
-function ParticlesCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const init = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-
-    const CYAN = { r: 34, g: 197, b: 220 };
-    const GREEN = { r: 52, g: 211, b: 130 };
-
-    const particles = Array.from({ length: 55 }, () => {
-      const isCyan = Math.random() > 0.45;
-      const c = isCyan ? CYAN : GREEN;
-      return {
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        r: Math.random() * 1.6 + 0.4,
-        alpha: Math.random() * 0.45 + 0.1,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: (Math.random() - 0.5) * 0.25,
-        color: c,
-      };
-    });
-
-    let raf: number;
-
-    function draw() {
-      if (!ctx || !canvas) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-        if (p.y < 0) p.y = canvas.height;
-        if (p.y > canvas.height) p.y = 0;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${p.color.r},${p.color.g},${p.color.b},${p.alpha})`;
-        ctx.fill();
-
-        // draw faint lines to close neighbours
-        for (let j = i + 1; j < particles.length; j++) {
-          const q = particles[j];
-          const dx = p.x - q.x;
-          const dy = p.y - q.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 110) {
-            const lineAlpha = (1 - dist / 110) * 0.12;
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(q.x, q.y);
-            ctx.strokeStyle = `rgba(${p.color.r},${p.color.g},${p.color.b},${lineAlpha})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        }
-      }
-      raf = requestAnimationFrame(draw);
-    }
-
-    draw();
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  useEffect(() => {
-    const cleanup = init();
-    const onResize = () => init();
-    window.addEventListener("resize", onResize);
-    return () => {
-      cleanup?.();
-      window.removeEventListener("resize", onResize);
-    };
-  }, [init]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: 0.75 }}
-    />
-  );
-}
 
 const GALLERY_ITEMS = [
   {
@@ -138,6 +46,41 @@ const GALLERY_ITEMS = [
     industry: "law",
     img: "https://cdn.poehali.dev/projects/070d1355-7f49-454e-b40d-a9faf2f1ae1e/files/679ff6f9-4d18-4834-ae68-62118574ba45.jpg",
   },
+  {
+    id: 7,
+    title: "Магазин «StyleHub»",
+    category: "Интернет-магазин",
+    industry: "shop",
+    img: "https://cdn.poehali.dev/projects/070d1355-7f49-454e-b40d-a9faf2f1ae1e/files/5c8b4321-3c7e-42bc-832f-60b7d3569ea4.jpg",
+  },
+  {
+    id: 8,
+    title: "Автосалон «MotorCity»",
+    category: "Авто",
+    industry: "auto",
+    img: "https://cdn.poehali.dev/projects/070d1355-7f49-454e-b40d-a9faf2f1ae1e/files/6d3a8701-4c43-479b-a086-4fbd2dc027ee.jpg",
+  },
+  {
+    id: 9,
+    title: "Детский сад «Солнышко»",
+    category: "Образование",
+    industry: "edu",
+    img: "https://cdn.poehali.dev/projects/070d1355-7f49-454e-b40d-a9faf2f1ae1e/files/7d7123d5-2a00-4e29-81b9-6d1644df5847.jpg",
+  },
+  {
+    id: 10,
+    title: "Отель «Grand Palais»",
+    category: "Отель",
+    industry: "hotel",
+    img: "https://cdn.poehali.dev/projects/070d1355-7f49-454e-b40d-a9faf2f1ae1e/files/961464a5-f97d-489b-8bbb-ccf76acdf549.jpg",
+  },
+  {
+    id: 11,
+    title: "Бухгалтерия «ФинПро»",
+    category: "Финансы",
+    industry: "finance",
+    img: "https://cdn.poehali.dev/projects/070d1355-7f49-454e-b40d-a9faf2f1ae1e/files/9e714456-b2ad-4717-876d-9af541c917e8.jpg",
+  },
 ];
 
 const INDUSTRIES = [
@@ -148,6 +91,11 @@ const INDUSTRIES = [
   { id: "sport", label: "Фитнес" },
   { id: "beauty", label: "Красота" },
   { id: "law", label: "Юридические" },
+  { id: "shop", label: "Магазины" },
+  { id: "auto", label: "Авто" },
+  { id: "edu", label: "Образование" },
+  { id: "hotel", label: "Отели" },
+  { id: "finance", label: "Финансы" },
 ];
 
 const FEATURES = [
@@ -267,14 +215,11 @@ export default function Index() {
 
       {/* HERO */}
       <section className="hero-bg relative min-h-screen flex items-center justify-center pt-24 overflow-hidden">
-        {/* Particles */}
-        <ParticlesCanvas />
-        {/* Soft glow blobs behind content */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-[36rem] h-[36rem] rounded-full blur-[140px] animate-float"
-            style={{ background: 'hsl(200 90% 55% / 0.07)' }} />
+            style={{ background: 'hsl(145 80% 52% / 0.07)' }} />
           <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full blur-[90px] animate-float"
-            style={{ background: 'hsl(145 80% 52% / 0.07)', animationDelay: "2s" }} />
+            style={{ background: 'hsl(145 80% 52% / 0.06)', animationDelay: "2s" }} />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
